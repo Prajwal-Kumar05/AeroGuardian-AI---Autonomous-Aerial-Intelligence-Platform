@@ -1,0 +1,50 @@
+version: "3.9"
+
+services:
+  db:
+    image: postgres:16
+    container_name: aeroplan_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: aeroplan
+    ports:
+      - "5432:5432"
+    volumes:
+      - aeroplan_pgdata:/var/lib/postgresql/data
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    container_name: aeroplan_backend
+    restart: unless-stopped
+    depends_on:
+      - db
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql+psycopg2://postgres:postgres@db:5432/aeroplan
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/app/backend
+      - ./uploads:/app/uploads
+
+  dashboard:
+    build:
+      context: .
+      dockerfile: Dockerfile.dashboard
+    container_name: aeroplan_dashboard
+    restart: unless-stopped
+    depends_on:
+      - backend
+    environment:
+      AEROPLAN_API_BASE: http://backend:8000
+    ports:
+      - "8501:8501"
+    volumes:
+      - ./dashboard:/app/dashboard
+
+volumes:
+  aeroplan_pgdata:
