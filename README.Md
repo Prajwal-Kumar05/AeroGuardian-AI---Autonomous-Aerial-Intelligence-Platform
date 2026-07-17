@@ -1,138 +1,100 @@
-# 🚨 AeroPlan-Agent
+🚨 AeroPlan-Agent
+<div align="center">
+<img src="https://img.shields.io/badge/Backend-FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white"/>
+<img src="https://img.shields.io/badge/Language-Python-3776AB?style=for-the-badge&logo=python&logoColor=white"/>
+<img src="https://img.shields.io/badge/Agents-LangGraph-1B2430?style=for-the-badge"/>
+<img src="https://img.shields.io/badge/Vision-YOLOv11%20%7C%20RT--DETR-F2A93B?style=for-the-badge"/>
+<img src="https://img.shields.io/badge/Dashboard-Streamlit-FF4B4B?style=for-the-badge&logo=streamlit&logoColor=white"/>
+<img src="https://img.shields.io/badge/License-MIT-blue?style=for-the-badge"/>
+<br/><br/>
+</div>
+An autonomous, multi-agent emergency-response platform built with LangGraph, combining real-time computer vision, weather intelligence, satellite verification, and GeoAI-powered evacuation planning into a single reasoning pipeline — from raw camera frame to a fully explained, dispatch-ready decision.
 
-**AI-Powered Autonomous Multi-Agent Framework for Real-Time Emergency Detection and Disaster Response**
+🎯 Objective
+Build an intelligent emergency-response system that continuously monitors multiple real-world information sources — webcam, uploaded media, satellite imagery, live weather, and OpenStreetMap data — and doesn't just detect emergencies, but verifies, reasons, plans, and explains using seven cooperating AI agents.
 
-A final-year BE Computer Science project combining **Agentic AI**, **Computer
-Vision**, **GeoAI**, and **Disaster Management** into one autonomous
-platform that doesn't just *detect* emergencies — it *reasons* over
-multi-source context, verifies, assesses risk, plans evacuation, and
-explains every decision it makes.
+✨ Features
+🧠 Multi-Agent Reasoning (LangGraph)
+Seven specialized agents — Monitoring, Vision Analysis, Verification, Risk Assessment, Geospatial Intelligence, Emergency Planning, and Explainable AI — pass a shared state through a directed graph, collaboratively reasoning toward a verified, auditable decision instead of a single black-box prediction.
+🎯 Vision-Based Emergency Detection
+RT-DETR / YOLOv11 detection of fire, smoke, flood, road accidents, collapsed buildings, fallen trees, blocked roads, and crowds — with bounding boxes, confidence scores, and estimated affected area per detection.
+✅ Cross-Verified, False-Alarm-Resistant
+Before anything is declared a real emergency, the Verification Agent cross-checks vision output against live weather conditions and NASA FIRMS satellite hotspot data, actively down-weighting implausible detections (e.g. fire cues during heavy rainfall).
+⚠️ Automated Risk Assessment
+A weighted risk-scoring algorithm combines emergency type, verification confidence, affected area, and weather amplifiers (like wind-driven fire spread) into a 0–100 score mapped to Low / Medium / High / Critical severity.
+🗺️ Dynamic Evacuation Planning
+Live OpenStreetMap road-network queries via OSMnx, with Dijkstra (primary) and A* (alternative) routing to the nearest safe zone — automatically excluding roads flagged as blocked by the Vision Agent.
+🧾 Explainable AI, Not a Black Box
+Every run produces a full step-by-step reasoning chain plus a human-readable narrative explaining what was detected, why it was (or wasn't) verified, why that severity was assigned, and why that evacuation route was chosen.
+📢 Simulated Emergency Alerts
+SMS, Email, Dashboard popup, and Voice alert dispatch to Police, Fire Department, Ambulance, and NDRF — fully simulated and logged for demo/grading purposes; no real emergency services are ever contacted.
+🖥️ Unified Live Dashboard
+A Streamlit control room with tabs for live monitoring, detection results, satellite context, weather, risk scoring, an interactive evacuation map, the full AI reasoning chain, incident timeline, and alert history.
 
----
+🛠️ Tech Stack
+LayerToolsAgent OrchestrationLangGraph (StateGraph)Backend APIFastAPI, PydanticVision ModelYOLOv11 / RT-DETR (Ultralytics), OpenCV, PyTorch, TransformersGeospatialOSMnx, NetworkX, GeoPandas, Shapely, RasterioWeather & SatelliteOpenWeatherMap API, NASA FIRMS, Sentinel Hub (Sentinel-2)DatabasePostgreSQL (SQLAlchemy ORM), auto-fallback to SQLiteFrontendStreamlit, Folium (Leaflet), PlotlyExplainabilityStructured reasoning chain + optional Claude-based narrativeDeploymentDocker Compose
 
-## ✨ What makes this different from a plain object detector
+🚀 Getting Started
 
-A naive system runs YOLO on a webcam and fires an alert on any positive
-detection. **AeroPlan-Agent orchestrates 7 cooperating AI agents** (via
-**LangGraph**) that monitor, detect, cross-verify against weather and
-satellite data, score risk, map the terrain, plan an evacuation route, and
-produce a human-readable explanation — before any alert is ever raised.
+Clone the repository
 
-```
-Monitoring → Vision Analysis → Verification → Risk Assessment →
-Geospatial Intelligence → Emergency Planning → Explainable AI → Alerts
-```
+bashgit clone https://github.com/your-username/aeroplan-agent
+cd aeroplan-agent
 
-See [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) for full diagrams
-(architecture, LangGraph workflow, sequence, ER, agent-communication).
+Install dependencies
 
-## 🧠 The 7 Agents
+bashpython -m venv .venv
+source .venv/bin/activate          # Windows: .venv\Scripts\activate
+pip install -r requirements.txt
+cp .env.example .env
+All external integrations (weather, satellite, LLM narration, fine-tuned vision model) have graceful fallbacks — the project runs end-to-end with zero API keys configured.
 
-| # | Agent | Role |
-|---|---|---|
-| 1 | **Monitoring Agent** | Pulls webcam/upload frames, live weather, satellite context |
-| 2 | **Vision Analysis Agent** | RT-DETR / YOLOv11 detection: fire, smoke, flood, accidents, collapsed buildings, blocked roads, crowds |
-| 3 | **Verification Agent** | Cross-checks vision output against weather + NASA FIRMS satellite hotspots to rule out false alarms |
-| 4 | **Risk Assessment Agent** | Computes severity (Low/Medium/High/Critical), risk score, affected area & population |
-| 5 | **Geospatial Intelligence Agent** | OSMnx-powered lookup of hospitals, fire/police stations, safe zones, blocked roads |
-| 6 | **Emergency Planning Agent** | Dijkstra + A* evacuation routing, shelter selection, dispatch recommendations |
-| 7 | **Explainable AI Agent** | Produces the full auditable reasoning chain + human-readable narrative |
+Run the backend
 
-## 🗂️ Project Structure
+bashuvicorn backend.main:app --reload --port 8000
+# Swagger docs: http://localhost:8000/docs
 
-```
+Run the dashboard
+
+bashstreamlit run dashboard/app.py
+# http://localhost:8501
+Or run everything with Docker:
+bashdocker compose up --build
+
+📁 Project Structure
 aeroplan-agent/
 ├── backend/
 │   ├── agents/          # 7 LangGraph agent nodes + graph.py orchestration
-│   ├── api/              # FastAPI routers
-│   ├── core/              # config, database session
-│   ├── ml/                 # YOLOv11/RT-DETR detector + heuristic fallback
-│   ├── models/              # SQLAlchemy ORM + Pydantic schemas
-│   ├── services/              # weather, satellite, OSM, routing, alerts
-│   ├── utils/                   # image I/O, logging
-│   └── main.py                   # FastAPI entrypoint
+│   │   ├── monitoring_agent.py
+│   │   ├── vision_agent.py
+│   │   ├── verification_agent.py
+│   │   ├── risk_agent.py
+│   │   ├── geospatial_agent.py
+│   │   ├── planning_agent.py
+│   │   └── explainable_agent.py
+│   ├── api/               # FastAPI routers
+│   ├── core/               # config, database session
+│   ├── ml/                  # YOLOv11/RT-DETR detector + heuristic fallback
+│   ├── models/                # SQLAlchemy ORM + Pydantic schemas
+│   ├── services/                # weather, satellite, OSM, routing, alerts
+│   └── main.py                    # FastAPI entrypoint
 ├── dashboard/
-│   └── app.py                      # Streamlit unified control room
+│   └── app.py                       # Streamlit unified control room
 ├── database/
-│   └── schema.sql                   # reference PostgreSQL DDL
-├── datasets/
-│   └── README.md                     # dataset sources + fine-tuning guide
-├── docs/
-│   ├── ARCHITECTURE.md                # all diagrams (mermaid)
-│   ├── INSTALLATION.md
-│   ├── DEPLOYMENT.md
-│   └── API.md
+│   └── schema.sql                    # PostgreSQL DDL
+├── docs/                               # architecture diagrams, install/deploy/API guides
+├── datasets/                            # dataset sources + fine-tuning guide
 ├── tests/
-│   └── test_agents.py
 ├── docker-compose.yml
-├── Dockerfile.backend
-├── Dockerfile.dashboard
-├── requirements.txt
-└── .env.example
-```
+└── requirements.txt
 
-## 🚀 Quick Start
+📸 Screenshots
+<img width="600" alt="Detection and Risk Assessment tab" src="docs/screenshots/dashboard-detection-risk.png" />
+<img width="600" alt="Evacuation Route Map tab" src="docs/screenshots/dashboard-evacuation-route.png" />
+<img width="600" alt="AI Reasoning and Alerts tab" src="docs/screenshots/dashboard-ai-reasoning-alerts.png" />
 
-```bash
-pip install -r requirements.txt
-cp .env.example .env               # fill in API keys (all optional — has fallbacks)
+⚠️ Scope Note
+All emergency-service notifications (SMS, Email, Dashboard popup, Voice alert to Police/Fire/Ambulance/NDRF) are simulated only. This is an academic project and never integrates with real emergency-dispatch infrastructure.
 
-# Terminal 1
-uvicorn backend.main:app --reload --port 8000
-
-# Terminal 2
-streamlit run dashboard/app.py
-```
-
-Or with Docker: `docker compose up --build`. Full details in
-[`docs/INSTALLATION.md`](docs/INSTALLATION.md) and
-[`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md).
-
-**Note:** the project runs end-to-end out of the box even with zero API
-keys configured — every external integration (weather, satellite, LLM
-narrative, fine-tuned vision model) has a documented graceful fallback so
-grading/demo is never blocked by missing credentials.
-
-## 🖥️ Dashboard
-
-Streamlit unified control room with tabs for Live Monitoring, Detection,
-Satellite View, Weather, Risk Heatmap, Evacuation Route Map (Folium),
-AI Reasoning, Incident Timeline & Decision Logs, and simulated Emergency
-Alerts.
-
-## 📡 Data Sources
-
-Webcam · Uploaded media · Sentinel-2 / NASA FIRMS · OpenWeatherMap ·
-OpenStreetMap (OSMnx). See [`datasets/README.md`](datasets/README.md) for
-training-data sources (Roboflow, Kaggle) and the YOLOv11/RT-DETR
-fine-tuning command.
-
-## ⚠️ Important scope note
-
-All emergency-service notifications (Police / Fire / Ambulance / NDRF via
-SMS, Email, Dashboard popup, Voice alert) are **simulated only**
-(`backend/services/alert_service.py`). This project never contacts real
-emergency services.
-
-## 🧪 Testing
-
-```bash
-pytest tests/ -v
-```
-
-## 📄 Further documentation
-
-- [Architecture & Diagrams](docs/ARCHITECTURE.md)
-- [Installation Guide](docs/INSTALLATION.md)
-- [Deployment Guide](docs/DEPLOYMENT.md)
-- [API Reference](docs/API.md)
-- [Datasets & Fine-tuning](datasets/README.md)
-
-## 🔮 Future Scope
-
-- Real-time video-stream inference (vs. single-frame polling) with temporal smoothing
-- Multi-camera fusion & sensor triangulation for precise incident geolocation
-- Federated learning across municipal camera networks for privacy-preserving model improvement
-- Integration with official emergency-dispatch CAD systems (requires formal agreements — out of current scope)
-- Reinforcement-learning-based dynamic re-routing as new road-blockage data streams in
-- Mobile app for citizen-reported incident corroboration
+📄 License
+MIT License — free to use, modify, and distribute.
